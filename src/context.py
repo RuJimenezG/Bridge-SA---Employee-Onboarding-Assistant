@@ -2,16 +2,28 @@
 Módulo encargado de recuperar el contexto necesario para responder
 preguntas relacionadas con el proceso de onboarding.
 
-Responsabilidades del módulo:
+Responsabilidades
+-----------------
 - Cargar la información almacenada en los archivos JSON.
 - Recuperar empleados.
 - Recuperar documentación.
 - Recuperar preguntas frecuentes.
 - Construir el contexto que posteriormente utilizará el modelo.
 
-IMPORTANTE:
 Este módulo NO realiza llamadas al modelo Gemini.
 Su única responsabilidad es gestionar y recuperar información.
+
+IMPORTANTE PARA EL EQUIPO
+-------------------------
+Este módulo actuará como la puerta de acceso a todos los datos del
+asistente.
+
+Los demás módulos del proyecto NO deberían leer directamente los
+archivos JSON. En su lugar deberán utilizar las funciones públicas
+definidas aquí.
+
+De esta forma toda la lógica de acceso a datos permanecerá centralizada
+en un único lugar.
 """
 
 import json
@@ -20,14 +32,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from context_rules import (
-    BONIFICACION_DEPARTAMENTO,
-    MAX_DOCUMENTOS,
-    MAX_FAQ,
-    PUNTOS_CUERPO,
-    PUNTOS_TAG,
-    PUNTOS_TITULO,
-)
 
 # =============================================================================
 # RUTAS DEL PROYECTO
@@ -36,13 +40,29 @@ from context_rules import (
 # Directorio raíz del proyecto.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Directorio donde se encuentran todos los archivos JSON.
+# Directorio que contiene todos los archivos JSON.
 DATA_DIR = BASE_DIR / "data"
 
 
 # =============================================================================
 # FUNCIONES PRIVADAS
 # =============================================================================
+
+def _obtener_ruta(nombre_archivo: str) -> Path:
+    """
+    Construye la ruta absoluta de un archivo ubicado dentro del
+    directorio de datos del proyecto.
+
+    Args:
+        nombre_archivo:
+            Nombre del archivo JSON.
+
+    Returns:
+        Ruta completa al archivo solicitado.
+    """
+
+    return DATA_DIR / nombre_archivo
+
 
 @lru_cache(maxsize=None)
 def _cargar_json(nombre_archivo: str) -> Any:
@@ -57,7 +77,8 @@ def _cargar_json(nombre_archivo: str) -> Any:
             Nombre del archivo JSON.
 
     Returns:
-        Contenido del archivo JSON.
+        dict | list:
+            Contenido del archivo JSON.
 
     Raises:
         FileNotFoundError:
@@ -67,11 +88,11 @@ def _cargar_json(nombre_archivo: str) -> Any:
             Si el contenido del archivo no es un JSON válido.
     """
 
-    ruta = DATA_DIR / nombre_archivo
+    ruta = _obtener_ruta(nombre_archivo)
 
     if not ruta.exists():
         raise FileNotFoundError(
-            f"No existe el archivo '{ruta}'."
+            f"No existe el archivo: {ruta}"
         )
 
     try:
@@ -79,7 +100,10 @@ def _cargar_json(nombre_archivo: str) -> Any:
             mode="r",
             encoding="utf-8"
         ) as archivo:
-            return json.load(archivo)
+
+            contenido = json.load(archivo)
+
+        return contenido
 
     except json.JSONDecodeError as error:
         raise ValueError(
@@ -88,48 +112,52 @@ def _cargar_json(nombre_archivo: str) -> Any:
 
 
 # =============================================================================
-# CARGA DE DATOS
+# FUNCIONES PÚBLICAS DE CARGA
 # =============================================================================
 
 @lru_cache(maxsize=None)
-def cargar_empresa() -> dict:
+def cargar_empresa() -> dict[str, Any]:
     """
-    Devuelve la información general de la empresa.
+    Recupera la información general de la empresa.
 
     Returns:
         Diccionario con la información de la empresa.
     """
+
     return _cargar_json("empresa.json")
 
 
 @lru_cache(maxsize=None)
-def cargar_empleados() -> list:
+def cargar_empleados() -> list[dict[str, Any]]:
     """
-    Devuelve la lista de empleados de demostración.
+    Recupera la lista de empleados disponibles para las demostraciones.
 
     Returns:
-        Lista con los empleados disponibles.
+        Lista de empleados.
     """
+
     return _cargar_json("empleados_demo.json")
 
 
 @lru_cache(maxsize=None)
-def cargar_documentos() -> list:
+def cargar_documentos() -> list[dict[str, Any]]:
     """
-    Devuelve la documentación utilizada durante el onboarding.
+    Recupera toda la documentación del proceso de onboarding.
 
     Returns:
         Lista con todos los documentos disponibles.
     """
+
     return _cargar_json("onboarding_docs.json")
 
 
 @lru_cache(maxsize=None)
-def cargar_faq() -> list:
+def cargar_faq() -> list[dict[str, Any]]:
     """
-    Devuelve la lista de preguntas frecuentes.
+    Recupera las preguntas frecuentes del proceso de onboarding.
 
     Returns:
-        Lista con las FAQ disponibles.
+        Lista de preguntas frecuentes.
     """
+
     return _cargar_json("faq_onboarding.json")
