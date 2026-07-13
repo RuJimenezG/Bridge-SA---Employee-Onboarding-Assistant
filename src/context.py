@@ -161,3 +161,97 @@ def cargar_faq() -> list[dict[str, Any]]:
     """
 
     return _cargar_json("faq_onboarding.json")
+
+
+# =============================================================================
+# FUNCIONES PÚBLICAS DE EMPLEADOS
+# =============================================================================
+
+# -------------------------------------------------------------------------
+# NOTA PARA EL EQUIPO
+#
+# Estas funciones serán utilizadas por el resto del proyecto para acceder
+# a la información de los empleados.
+#
+# No accedáis directamente al archivo empleados_demo.json desde otros
+# módulos. Si en el futuro cambia el origen de los datos (base de datos,
+# API, etc.), únicamente habrá que modificar este módulo.
+# -------------------------------------------------------------------------
+
+
+def obtener_empleado(id_empleado: str) -> dict[str, Any]:
+    """
+    Recupera la información de un empleado a partir de su identificador.
+
+    Esta función será utilizada por el módulo de lógica para conocer el
+    departamento, rol y demás información necesaria para personalizar
+    las respuestas del asistente.
+
+    Args:
+        id_empleado:
+            Identificador único del empleado.
+
+    Returns:
+        Diccionario con toda la información del empleado.
+
+    Raises:
+        ValueError:
+            Si no existe ningún empleado con ese identificador.
+    """
+
+    empleados = cargar_empleados()
+
+    for empleado in empleados:
+
+        if empleado["id"] == id_empleado:
+            return empleado
+
+    raise ValueError(
+        f"No existe ningún empleado con el identificador '{id_empleado}'."
+    )
+
+
+def existe_empleado(id_empleado: str) -> bool:
+    """
+    Comprueba si un empleado existe.
+
+    Esta función puede utilizarse antes de iniciar el proceso de
+    construcción del contexto.
+
+    Args:
+        id_empleado:
+            Identificador del empleado.
+
+    Returns:
+        True si el empleado existe.
+        False en caso contrario.
+    """
+
+    empleados = cargar_empleados()
+
+    for empleado in empleados:
+
+        if empleado["id"] == id_empleado:
+            return True
+
+    return False
+
+
+def obtener_departamento(id_empleado: str) -> str:
+    """
+    Devuelve el departamento al que pertenece un empleado.
+
+    Esta función simplifica el acceso al departamento desde otros módulos,
+    evitando repetir código.
+
+    Args:
+        id_empleado:
+            Identificador del empleado.
+
+    Returns:
+        Nombre del departamento del empleado.
+    """
+
+    empleado = obtener_empleado(id_empleado)
+
+    return empleado["departamento"]
