@@ -1,7 +1,8 @@
 from gemini_client import llamar_gemini
 
-from state import inicializar_estado, append_user_msg, append_model_msg
+from state import inicializar_estado, append_user_msg, append_model_msg, ultimos_n_mensajes
 from prompts import PLANTILLA
+from config import WINDOW
 
 # Función para imprimir métricas de la llamada
 def imprimir_metricas(respuesta) -> None:
@@ -16,8 +17,9 @@ def demo() -> None:
     "Hola, me llamo Matías.",
     "Explica en 20 palabras quién fué el mejor físico del mundo.",
     "Dime en 10 palabras cuál es la mejor canción de los últimos 100 años.",
+    "Reproduce con exactitud, sin añadir ni quitar nada, el turno 2 de nuestra conversación, indicando cual fue mi pregunta y cuál tu respuesta.",
     "Dime cómo me llamo. ",
-    "Reproduce con exactitud, sin añadir ni quitar nada, el segundo turno de nuestra conversación, indicando cual fue mi pregunta y cuál tu respuesta."
+    "Reproduce con exactitud, sin añadir ni quitar nada, el turno 10 de nuestra conversación, indicando cual fue mi pregunta y cuál tu respuesta."
 ]
     state = inicializar_estado()
  
@@ -25,7 +27,7 @@ def demo() -> None:
     print("=" * 30 + "\n")
     for llamada in llamadas:
         respuesta = llamar_gemini(PLANTILLA.format(
-            historial=state,
+            historial=ultimos_n_mensajes(state, WINDOW),
             mensaje_del_usuario=llamada
         ))
         print("+++ Pregunta: ")
@@ -38,7 +40,7 @@ def demo() -> None:
         append_model_msg(state, respuesta[0])
     print("=" * 50 + "\n")
     print("--- STATE ---")
-    print(state)
+    print(state["messages"])
     print("=" * 10 + "\n")
     print("Fin de la DEMOSTRACIÓN")
     
