@@ -7,7 +7,7 @@ from google import genai
 from google.genai import types
 
 # Dependencias de módulos dentro del proyecto
-from config import MODEL, TEMPERATURE
+from config import MODEL, TEMPERATURE, TEMPERATURE_RESUMEN
 from gemini_auth import configurar_gemini_api_key
 
 configurar_gemini_api_key()
@@ -46,16 +46,24 @@ def _metrics_from_response(response, started: float) -> MetricasLlamada:
     
 
 # Función para llamar a Gemini, pasarle un prompt y que devuelva una tupla que contiene un string con la respuesta y un objeto MetricasLlamada
-def llamar_gemini(prompt: str) -> tuple[str, MetricasLlamada]:
+def llamar_gemini(prompt: str, temperature: float = TEMPERATURE) -> tuple[str, MetricasLlamada]:
     # Tiempo inicial
     started = time.time()
     # Respuesta
     response = _client().models.generate_content(
         model=MODEL,
         contents=prompt,
-        config=types.GenerateContentConfig(temperature=TEMPERATURE)
+        config=types.GenerateContentConfig(temperature=temperature)
     )
     return (response.text or "").strip(), _metrics_from_response(response, started)
+
+
+# Función para solicitar al LLM el resumen de la conversación pasándole el historial
+def llamar_gemini_resumen(prompt: str) -> str:
+    texto, _ = llamar_gemini(prompt, temperature=TEMPERATURE_RESUMEN)
+    return texto
+
+
 
 
 # Función para contar tokens

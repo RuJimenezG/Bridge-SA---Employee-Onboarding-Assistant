@@ -1,6 +1,7 @@
 from gemini_client import llamar_gemini
 
 from state import inicializar_estado, append_user_msg, append_model_msg, ultimos_n_mensajes
+from logic import maybe_uptdate_summary
 from prompts import PLANTILLA
 from config import WINDOW
 
@@ -13,7 +14,7 @@ def imprimir_metricas(respuesta) -> None:
 
 # DEMOSTRACIÓN con varios turnos
 def demo() -> None:
-    llamadas = [
+    mensajes_usuario = [
     "Hola, me llamo Matías.",
     "Explica en 20 palabras quién fué el mejor físico del mundo.",
     "Dime en 10 palabras cuál es la mejor canción de los últimos 100 años.",
@@ -25,22 +26,27 @@ def demo() -> None:
  
     print("+++ Iniciando DEMOSTRACIÓN:")
     print("=" * 30 + "\n")
-    for llamada in llamadas:
+    for mensaje in mensajes_usuario:
         respuesta = llamar_gemini(PLANTILLA.format(
-            historial=ultimos_n_mensajes(state, WINDOW),
-            mensaje_del_usuario=llamada
+            window=WINDOW,
+            historial_reciente=ultimos_n_mensajes(state, WINDOW),
+            resumen=maybe_uptdate_summary(state),
+            mensaje_del_usuario=mensaje
         ))
         print("+++ Pregunta: ")
-        print(llamada)
+        print(mensaje)
         print("+++ Respuesta: ")
         print(respuesta[0])
         imprimir_metricas(respuesta)
         print("=" * 30 + "\n")
-        append_user_msg(state, llamada)
+        append_user_msg(state, mensaje)
         append_model_msg(state, respuesta[0])
-    print("=" * 50 + "\n")
-    print("--- STATE ---")
-    print(state["messages"])
+    # print("=" * 50 + "\n")
+    # print("--- STATE ---")
+    # print("--- MESSAGES ---")
+    # print(state["messages"])
+    # print("--- SUMMARY ---")
+    # print(state["summary"])
     print("=" * 10 + "\n")
     print("Fin de la DEMOSTRACIÓN")
     

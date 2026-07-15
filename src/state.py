@@ -20,5 +20,24 @@ def append_model_msg(state: dict, texto: str) -> None:
     
 # Función para devolver los últimos n mensajes configurados en WINDOW
 def ultimos_n_mensajes (state: dict, n: int) -> list[dict]:
+    lines = []
     all_messages = state.get("messages", [])
-    return all_messages[-n:] if n > 0 else []
+    # -n * 2 ya que cada turno se compone de dos mensajes
+    # de este modo se guardan n turnos
+    for message in all_messages[-n*2:]:
+        lines.append(f"Turno {message.get('turno')} - {message.get('role', 'user')}: {message.get('text', '')}")
+    return "\n".join(lines)
+
+
+# Función para convertir state["messages"] de una list[dict] a líneas de texto
+# Turno 1 - user: Pregunta
+# Turno 1 - model: Respuesta
+def historial_como_texto(state:dict) -> str:
+    lines = []
+    for message in state.get("messages", []):
+        lines.append(f"Turno {message.get('turno')} - {message.get('role', 'user')}: {message.get('text', '')}")
+    return "\n".join(lines)
+
+
+def set_summary(state: dict, summary:str) -> None:
+    state["summary"] = (summary or "").strip()
