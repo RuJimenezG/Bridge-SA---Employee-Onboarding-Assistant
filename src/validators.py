@@ -53,7 +53,7 @@ PATRONES_INYECCION = [
     "act as",
 ]
 
-#Control de datos sensibles
+
 def detectar_inyeccion(mensaje):
     mensaje_lower = mensaje.lower()
     for patron in PATRONES_INYECCION:
@@ -61,10 +61,8 @@ def detectar_inyeccion(mensaje):
             return True, "No puedo procesar ese tipo de solicitud."
     return False, None
 
-
-
+#Detección de datos sensibles 
 PATRONES_SENSIBLES = [
-    # Salarios y compensación
     "cuánto gana",
     "cuanto gana",
     "sueldo de",
@@ -81,7 +79,6 @@ PATRONES_SENSIBLES = [
     "tabla salarial",
     "mi sueldo exacto",
     "mi salario exacto",
-    # Datos de otros empleados
     "datos de",
     "información de",
     "informacion de",
@@ -94,7 +91,6 @@ PATRONES_SENSIBLES = [
     "direccion de",
     "teléfono de",
     "telefono de",
-    # Credenciales y accesos
     "contraseña",
     "contrasena",
     "password",
@@ -103,7 +99,6 @@ PATRONES_SENSIBLES = [
     "token de acceso",
     "clave wifi",
     "wifi password",
-    # Datos bancarios
     "cuenta bancaria",
     "número de cuenta",
     "numero de cuenta",
@@ -111,6 +106,40 @@ PATRONES_SENSIBLES = [
     "datos bancarios",
 ]
 
-print(detectar_sensible("¿Cuánto gana mi manager Carlos?"))
-print(detectar_sensible("¿Cuántos días de vacaciones tengo?"))
-print(detectar_sensible("¿Cuál es la contraseña del wifi?"))
+def detectar_sensible(mensaje):
+    mensaje_lower = mensaje.lower()
+    for patron in PATRONES_SENSIBLES:
+        if patron in mensaje_lower:
+            return True, "Esa información es confidencial. Consulta con tu manager o People en tu 1:1."
+    return False, None
+
+#Detección de consultas fuera de dominio
+PATRONES_FUERA_DOMINIO = [
+    "soy participante",
+    "soy alumno",
+    "soy estudiante",
+    "curso externo",
+    "programa formativo",
+    "módulo",
+    "ejercicio del curso",
+    "bootcamp",
+    "mi profesor",
+    "ayúdame con mi tarea",
+    "ayudame con mi tarea",
+    "recomiéndame una película",
+    "recomiendame una pelicula",
+    "cuál es la capital",
+    "quién ganó",
+    "quien gano",
+    "háblame de",
+    "hablame de",
+    "explícame la historia",
+    "explicame la historia",
+]
+
+def detectar_fuera_dominio(mensaje):
+    mensaje_lower = mensaje.lower()
+    for patron in PATRONES_FUERA_DOMINIO:
+        if patron in mensaje_lower:
+            return True, "Solo puedo ayudarte con dudas sobre tu onboarding en Bridge SA. Para otras consultas, contacta con tu manager."
+    return False, None
