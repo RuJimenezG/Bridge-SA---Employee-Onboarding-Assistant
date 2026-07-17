@@ -7,7 +7,7 @@ from google import genai
 from google.genai import types
 
 # Dependencias de módulos dentro del proyecto
-from config import MODEL, TEMPERATURE, TEMPERATURE_RESUMEN
+from config import MODEL, TEMPERATURE, TEMPERATURE_RESUMEN, MAX_PROMPT_TOKENS
 from gemini_auth import configurar_gemini_api_key
 
 configurar_gemini_api_key()
@@ -64,9 +64,17 @@ def llamar_gemini_resumen(prompt: str) -> str:
     return texto
 
 
-
-
 # Función para contar tokens
 def count_tokens(contents: str) -> int:
     tokens = _client().models.count_tokens(model=MODEL, contents=contents)
     return int(tokens.total_tokens or 0)
+
+
+# Función para comprobar si se exceden los tokens del prompt antes de llamar a Gemini
+def safe_generate(prompt:str, *, temperature = TEMPERATURE) -> tuple[str, MetricasLlamada]:
+    tokens_prompt = count_tokens(prompt)
+    if tokens_prompt > MAX_PROMPT_TOKENS:
+        raise ValueError(
+            f"Prompt demasiado grande: {tokens_prompt}. El máximo de tokens permitido es {MAX_PROMPT_TOKENS}"
+        )
+    return llamar_gemini(prompt, temperature)

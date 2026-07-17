@@ -19,7 +19,7 @@ El resumen debe ser óptimo para dar contexto al asistente de onboarding y que r
 
 
 # Plantilla con envío de historial y mensaje del usuario
-PLANTILLA = """
+PLANTILLA_CONSULTA = """
 Responde al mensaje del usuario teniendo en cuenta el historial de la conversación mantenida con él hasta ahora. Este historial está formado por los últimos {window} mensajes y un resumen de la conversación completa.
 
 --- HISTORIAL DE CONVERSACIÓN DE LOS ÚLTIMOS {window} MENSAJES ---

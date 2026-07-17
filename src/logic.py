@@ -1,10 +1,10 @@
 
 
-from config import RESUMIR_CADA
+from config import RESUMIR_CADA, WINDOW
 from gemini_client import MetricasLlamada
-from state import historial_como_texto, set_summary
-from prompts import build_resumen_prompt
-from gemini_client import llamar_gemini_resumen
+from state import historial_como_texto, set_summary, ultimos_n_mensajes, append_user_msg, append_model_msg
+from prompts import build_resumen_prompt, PLANTILLA_CONSULTA
+from gemini_client import llamar_gemini_resumen,safe_generate
 
 # Función para devolver una respuesta cuando hay un error
 def respuesta_error(mensaje: str, errores: list[str]) -> dict:
@@ -42,6 +42,41 @@ def _metricas_a_dict(metricas: MetricasLlamada) -> dict:
     }
 
 
+# Función de orquestación para responder consultas
+# - Comprueba si hay mensaje del usuario
+# - Genera el prompt
+# - Hace la llamada con safe_generate
+# - Guarda los mensajes con append_X_msg
+# - Solicita el resumen de la conversación
+# - Devuelve una respuesta con estado (ok o error), mensaje y datos.
+def responder_consulta(state: dict, consulta: str) -> dict:
+    # Se devuelve respuesta de error ad hoc para el caso de que la consulta esté vacía
+    if not consulta.strip():
+        return respuesta_error("Consulta vacía", ["La pregunta no puede estar vacía"])
+    prompt = PLANTILLA_CONSULTA.format(
+        window=WINDOW,
+        historial_reciente=ultimos_n_mensajes(state, WINDOW),
+        resumen=state.get("summary", ""),
+        mensaje_del_usuario=consulta
+    )
+    try:
+        texto, metricas = safe_generate(prompt)
+    except ValueError as e:
+        return respuesta_error("Contexto demasiado grande", [str(e)])
     
-
+    append_user_msg(state, consulta)
+    append_model_msg(state, texto)
+    converascion_resumida = maybe_uptdate_summary(state)
+    
+    return respuesta_ok(
+        "Respuesta generada",
+        {
+            "respuesta": texto,
+            "resumen_actualizado": converascion_resumida,
+            "summary": state.get("summary", ""),
+            "metricas": _metricas_a_dict(metricas),
+            "modo_contexto": "summary + ventana" if state.get("summary") else "ventana"
+        }
+    )
+        
     
