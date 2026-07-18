@@ -131,6 +131,13 @@ def cargar_faq() -> list[dict]:
     return _CACHE["faq"]
 
 
+def cargar_empleados_demo() -> list[dict]:
+    """Carga (con caché) data/empleados_demo.json."""
+    if "empleados_demo" not in _CACHE:
+        _CACHE["empleados_demo"] = _cargar_json("empleados_demo.json", [])
+    return _CACHE["empleados_demo"]
+
+
 def recargar_cache() -> None:
     """
     Limpia la caché en memoria. Útil para tests/demos si se modifican

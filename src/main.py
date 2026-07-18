@@ -4,6 +4,7 @@ from state import inicializar_estado, append_user_msg, append_model_msg, ultimos
 from logic import maybe_uptdate_summary, responder_consulta
 from prompts import PLANTILLA_CONSULTA
 from config import WINDOW
+from context import cargar_empleados_demo
 
 # Función para imprimir métricas de la llamada
 def imprimir_metricas(respuesta:dict) -> None:
@@ -22,13 +23,14 @@ def demo() -> None:
     "Reproduce con exactitud, sin añadir ni quitar nada, el turno 2 de nuestra conversación, indicando cual fue mi pregunta y cuál tu respuesta.",
     "Dime cómo me llamo. ",
     "Reproduce con exactitud, sin añadir ni quitar nada, el turno 10 de nuestra conversación, indicando cual fue mi pregunta y cuál tu respuesta."
-]
-    state = inicializar_estado()
+]  
+    empleados = cargar_empleados_demo()
+    state = inicializar_estado(empleados[1])
  
     print("+++ Iniciando DEMOSTRACIÓN:")
     print("=" * 30 + "\n")
     for mensaje in mensajes_usuario:
-        respuesta = responder_consulta(state,mensaje)
+        respuesta = responder_consulta(state, mensaje)
         print("+++ Pregunta: ")
         print(mensaje)
         print("+++ Respuesta: ")
