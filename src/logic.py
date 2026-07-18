@@ -5,6 +5,7 @@ from gemini_client import MetricasLlamada
 from state import historial_como_texto, set_summary, ultimos_n_mensajes, append_user_msg, append_model_msg
 from prompts import PLANTILLA_CONSULTA, build_resumen_prompt, build_profile_block, build_history_block, build_summary_block, build_question_block, build_question_prompt
 from gemini_client import llamar_gemini_resumen, safe_generate
+from context import seleccionar_faq, seleccionar_documento, determinar_escalado, obtener_contacto_escalado
 
 # Función para devolver una respuesta cuando hay un error
 def respuesta_error(mensaje: str, errores: list[str]) -> dict:
@@ -50,10 +51,22 @@ def _metricas_a_dict(metricas: MetricasLlamada) -> dict:
 # - Solicita el resumen de la conversación
 # - Devuelve una respuesta con estado (ok o error), mensaje y datos.
 def responder_consulta(state: dict, consulta: str) -> dict:
-    # Se devuelve respuesta de error ad hoc para el caso de que la consulta esté vacía
+    # 1. Validación inicial
     if not consulta.strip():
         return respuesta_error("Consulta vacía", ["La pregunta no puede estar vacía"])
+    # 2. Obtener los datos intermedios
+    departamento_usuario = state.get("user_profile", {}).get("departamento")   
+    faq_entries = seleccionar_faq(consulta)
+    documents = seleccionar_documento(consulta, departamento=departamento_usuario) 
+    # 3. Aplicar la lógica condicional
+    # Si ambas listas están vacías, calcular el escalado; si no, pasar None
+    escalation = determinar_escalado(consulta) if not faq_entries and not documents else None
+    contacto_escalado = obtener_contacto_escalado(escalation) if escalation else None
+    # 4. Construir el prompt con todas las variables ya listas
     prompt = build_question_prompt(
+        faq_entries=faq_entries,
+        documents=documents,
+        escalation=(escalation, contacto_escalado),
         profile=state.get("user_profile"),
         recent_messages=ultimos_n_mensajes(state, WINDOW),
         summary=state.get("summary", ""),
@@ -63,11 +76,12 @@ def responder_consulta(state: dict, consulta: str) -> dict:
         texto, metricas = safe_generate(prompt)
     except ValueError as e:
         return respuesta_error("Contexto demasiado grande", [str(e)])
-    
+    # 5. Guardar los mensajes y correr turno
     append_user_msg(state, consulta)
     append_model_msg(state, texto)
+    # 6. Actualizar el resumen de la conversación si es necesario
     converascion_resumida = maybe_uptdate_summary(state)
-    
+    # 7. Devolver respuesta
     return respuesta_ok(
         "Respuesta generada",
         {

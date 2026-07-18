@@ -19,7 +19,7 @@ def append_model_msg(state: dict, texto: str) -> None:
     state["turnos"] = turno_actual
     
 # Función para devolver los últimos n mensajes configurados en WINDOW
-def ultimos_n_mensajes (state: dict, n: int) -> list[str]:
+def ultimos_n_mensajes (state: dict, n: int) -> str:
     lines = []
     all_messages = state.get("messages", [])
     # -n * 2 ya que cada turno se compone de dos mensajes
