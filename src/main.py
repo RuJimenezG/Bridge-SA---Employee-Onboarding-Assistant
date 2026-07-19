@@ -1,7 +1,7 @@
 from gemini_client import safe_generate
 
 from state import inicializar_estado
-from logic import responder_consulta
+from logic import responder_consulta, responder_checklist_diario, decidir_checklist_o_consulta
 from context import cargar_empleados_demo, cargar_casos_trampa_demo
 
 # Función para imprimir métricas de la llamada
@@ -105,6 +105,47 @@ def demo_casos_trampa() -> None:
     print("=" * 50 + "\n")
     print("Fin de la DEMOSTRACIÓN")
 
+# DEMOSTRACIÓN checklist
+def demo_checklist() -> None:
+    # 1. Inicializar estado
+    empleados = cargar_empleados_demo()
+    state = inicializar_estado()
+    # 2. Inicio de la demostración
+    print("+++ Iniciando DEMOSTRACIÓN del checklist:")
+    print("=" * 30 + "\n")
+    # 3. Casos
+    mensajes_usuario = [
+        "Laura (`emp_01`), dev junior, **día 1**",
+        "Pablo Navarro (emp_02), comercial, **dia 5**",
+        "¿Cuántos días de vacaciones tengo?"
+    ]
+    # 4. Iteración sobre los casos
+    for mensaje in mensajes_usuario:
+        # 6. Generar respuesta
+        respuesta = decidir_checklist_o_consulta(state, mensaje)
+        # 7. Imprimir pregunta, respuesta y métricas
+        print("+++ Pregunta: ")
+        print(mensaje)
+        print("+++ Respuesta: ")
+        if respuesta.get("status") == "ok":
+            print(respuesta.get("data", {}).get("respuesta"))
+            imprimir_metricas(respuesta)
+        # 8. Imprimir errores si los hay
+        else:
+            print(f"Status: {respuesta.get("status")} - {respuesta.get("mensaje")}")
+            print("ERRORES: ")
+            print(f"{respuesta.get('data').get('errores')}")
+        print("\n" + "=" * 30 + "\n")
+    # 8. Imprimir otros datos intermedios y fin de la demostración
+    # print("=" * 50 + "\n")
+    # print("--- STATE ---")
+    # print("--- MESSAGES ---")
+    # print(state["messages"])
+    # print("--- SUMMARY ---")
+    # print(state["summary"])
+    print("=" * 50 + "\n")
+    print("Fin de la DEMOSTRACIÓN")
 
 # demo_casos_trampa()
-demo_cosultas_asistente()
+# demo_cosultas_asistente()
+demo_checklist()

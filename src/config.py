@@ -5,7 +5,7 @@ MODEL = "gemini-3.1-flash-lite"
 # Segundo modelo propuesto para el benchmark "gemma-4-31b-it"
 TEMPERATURE = 0.3
 TEMPERATURE_RESUMEN = 0.2
-
+TEMPERATURE_JSON = 0.0
 
 # Número máximo de tokens permitidos en el prompt
 MAX_PROMPT_TOKENS = 4000
