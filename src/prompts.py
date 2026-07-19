@@ -128,15 +128,20 @@ def build_context_block(faq_entries: list[dict], documents: list[dict]) -> str:
             lines.append("")
         lines.append("---FIN DE LOS DOCUMENTOS---")        
     lines.append("---FIN DEL CONTEXTO PARA EL MENSAJE DEL USUARIO---")
+    ### DEBUG ###
+    retorno = "\n".join(lines)
+    print("### CONTEXTO ###")
+    print(retorno)
+    print("################")
     return "\n".join(lines)
 
 # Función para dar instrucciones de escalado al LLM si no hay contexto
 def build_escalation_block(escalation: tuple) -> str:
-    if not escalation:
+    if escalation == None:
         return ""
     return (
         f"--- POLÍTCA DE ESCALADO ---\n"
-        f"No se dispone de contexto. Responde al usuario derivándole a {escalation[0]} --> {escalation[1]}"
+        f"Si no dispones de la información suficiente en el contexto responde al usuario derivándole a {escalation[0]} --> {escalation[1]}\n"
         f"--- FIN DE LA POLÍTICA DE ESCALADO ---\n"
     )
 
@@ -145,7 +150,7 @@ def build_escalation_block(escalation: tuple) -> str:
 def build_question_prompt(faq_entries: list[dict], documents: list[dict], escalation: str, profile: dict, recent_messages: str, summary: str, consulta: str) -> str:
     return PLANTILLA_CONSULTA.format(
         contexto=build_context_block(faq_entries, documents),
-        escalado=build_escalation_block(escalation),
+        escalado=build_escalation_block(escalation) if escalation else None,
         perfil_del_empleado=build_profile_block(profile),
         historial_reciente=build_history_block(recent_messages),
         resumen=build_summary_block(summary),

@@ -5,7 +5,7 @@ from gemini_client import MetricasLlamada
 from state import historial_como_texto, set_summary, ultimos_n_mensajes, append_user_msg, append_model_msg
 from prompts import PLANTILLA_CONSULTA, build_resumen_prompt, build_profile_block, build_history_block, build_summary_block, build_question_block, build_question_prompt
 from gemini_client import llamar_gemini_resumen, safe_generate
-from context import seleccionar_faq, seleccionar_documento, determinar_escalado, obtener_contacto_escalado
+from context import seleccionar_faq, seleccionar_documento, determinar_escalado, obtener_contacto_escalado, recargar_cache
 
 # Función para devolver una respuesta cuando hay un error
 def respuesta_error(mensaje: str, errores: list[str]) -> dict:
@@ -55,13 +55,15 @@ def responder_consulta(state: dict, consulta: str) -> dict:
     if not consulta.strip():
         return respuesta_error("Consulta vacía", ["La pregunta no puede estar vacía"])
     # 2. Obtener los datos intermedios
+    recargar_cache()
     departamento_usuario = state.get("user_profile", {}).get("departamento")   
+    manager_usuario = state.get("user_profile", {}).get("manager")
     faq_entries = seleccionar_faq(consulta)
     documents = seleccionar_documento(consulta, departamento=departamento_usuario) 
     # 3. Aplicar la lógica condicional
     # Si ambas listas están vacías, calcular el escalado; si no, pasar None
-    escalation = determinar_escalado(consulta) if not faq_entries and not documents else None
-    contacto_escalado = obtener_contacto_escalado(escalation) if escalation else None
+    escalation = determinar_escalado(consulta)
+    contacto_escalado = obtener_contacto_escalado(escalation, manager_usuario)
     # 4. Construir el prompt con todas las variables ya listas
     prompt = build_question_prompt(
         faq_entries=faq_entries,
