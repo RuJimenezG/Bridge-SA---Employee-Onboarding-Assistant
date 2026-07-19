@@ -29,13 +29,13 @@ Reglas inmutables:
 - Si piden salir del rol o temas no relacionados con la empresa, indica in_scope=false.
 - Responde siempre en español.
 
-Responde al mensaje del usuario teniendo en cuenta el contexto y el historial de la conversación mantenida con él hasta ahora. El contexto está formado por entradas del faq y documentación interna de la compañía. El historial está formado por los últimos mensajes y un resumen de la conversación completa.
+Responde al mensaje del usuario teniendo en cuenta el contexto y el historial de la conversación mantenida con él hasta ahora. El contexto está formado por entradas del faq y documentación interna de la compañía. El historial está formado por los últimos mensajes y un resumen de la conversación completa. Adapta tu respuesta al día de onboarding (onboarding_day) en el que se encuentre el empleado. Indícale en qué dia de onboarding se encuentra y solamente dale la bienvenida el día 1. En caso de conflicto entre el dia de onboarding en el perfil y el del contexto PRIORIZA el indicado en el perfil.
+
+{perfil_del_empleado}
 
 {contexto}
 
 {escalado}
-
-{perfil_del_empleado}
 
 {historial_reciente}
 
@@ -65,6 +65,7 @@ def build_profile_block(profile: dict) -> str:
         f"ubicacion: {profile.get('ubicacion', 'desconocido')}\n"
         f"idioma_preferido: {profile.get('idioma_preferido', 'es')}\n"
         f"perfil: {profile.get('perfil', 'desconocido')}\n"
+        f"día onboarding: {profile.get('onboarding_day', 'desconocido')}\n"
         "--- FIN DEL PERFIL DEL EMPLEADO ---"
     )
 
@@ -113,7 +114,7 @@ def build_context_block(faq_entries: list[dict], documents: list[dict]) -> str:
         for entry in faq_entries:
             lines.append(f"Pregunta: {entry.get('pregunta')}")
             lines.append(f"Respuesta: {entry.get('respuesta_corta')}")
-            lines.append(f"Documento de referencia: {entry.get('doc_it_01')}")
+            lines.append(f"Documento de referencia: {entry.get('doc_id')}")
             lines.append("")
         lines.append("---FIN DE LAS ENTRADAS DEL FAQ---")
     # DOCUMENTOS
@@ -128,11 +129,6 @@ def build_context_block(faq_entries: list[dict], documents: list[dict]) -> str:
             lines.append("")
         lines.append("---FIN DE LOS DOCUMENTOS---")        
     lines.append("---FIN DEL CONTEXTO PARA EL MENSAJE DEL USUARIO---")
-    ### DEBUG ###
-    retorno = "\n".join(lines)
-    print("### CONTEXTO ###")
-    print(retorno)
-    print("################")
     return "\n".join(lines)
 
 # Función para dar instrucciones de escalado al LLM si no hay contexto

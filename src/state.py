@@ -1,11 +1,14 @@
 # Estado de la sesión del chat con el modelo
-def inicializar_estado(user_profile: dict | None = None) -> dict:
+def inicializar_estado(user_profile: dict | None = None, onboarding_day: int = 1) -> dict:
+    profile = dict(user_profile) if user_profile else {}
+    profile["onboarding_day"] = onboarding_day
     return {
-        "user_profile": user_profile or {}, 
-        "messages": [], # Historial del mensajes: {"turno": turno del mensaje, "role": "user"|"model", "text": str}
+        "user_profile": profile,
+        "messages": [], 
         "summary": "",
         "turnos": 0
     }
+
 
 # Añadir al estado el mensaje del usuario
 def append_user_msg(state: dict, texto: str) -> None:

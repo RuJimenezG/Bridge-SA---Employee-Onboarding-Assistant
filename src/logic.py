@@ -3,9 +3,10 @@
 from config import RESUMIR_CADA, WINDOW
 from gemini_client import MetricasLlamada
 from state import historial_como_texto, set_summary, ultimos_n_mensajes, append_user_msg, append_model_msg
-from prompts import PLANTILLA_CONSULTA, build_resumen_prompt, build_profile_block, build_history_block, build_summary_block, build_question_block, build_question_prompt
+from prompts import build_resumen_prompt, build_question_prompt
 from gemini_client import llamar_gemini_resumen, safe_generate
 from context import seleccionar_faq, seleccionar_documento, determinar_escalado, obtener_contacto_escalado, recargar_cache
+from validators import validar
 
 # Función para devolver una respuesta cuando hay un error
 def respuesta_error(mensaje: str, errores: list[str]) -> dict:
@@ -52,8 +53,9 @@ def _metricas_a_dict(metricas: MetricasLlamada) -> dict:
 # - Devuelve una respuesta con estado (ok o error), mensaje y datos.
 def responder_consulta(state: dict, consulta: str) -> dict:
     # 1. Validación inicial
-    if not consulta.strip():
-        return respuesta_error("Consulta vacía", ["La pregunta no puede estar vacía"])
+    validacion_ok, error_en_validacion = validar(consulta)
+    if not validacion_ok:
+        return respuesta_error("Se produjo un error al validar el input.", [error_en_validacion])
     # 2. Obtener los datos intermedios
     recargar_cache()
     departamento_usuario = state.get("user_profile", {}).get("departamento")   
@@ -95,4 +97,4 @@ def responder_consulta(state: dict, consulta: str) -> dict:
         }
     )
         
-    
+
