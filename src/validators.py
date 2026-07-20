@@ -123,7 +123,6 @@ def detectar_sensible(mensaje):
 
 #Detección de consultas fuera de dominio
 PATRONES_FUERA_DOMINIO = [
-   PATRONES_FUERA_DOMINIO = [
     # Participantes externos
     "soy participante",
     "soy alumno",
@@ -249,8 +248,8 @@ PATRONES_FUERA_DOMINIO = [
     "receta de cocina",
     "cómo cocino",
     "como cocino",
-]
-]
+    ]
+
 
 def detectar_fuera_dominio(mensaje):
     mensaje_lower = mensaje.lower()

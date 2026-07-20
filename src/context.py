@@ -131,6 +131,20 @@ def cargar_faq() -> list[dict]:
     return _CACHE["faq"]
 
 
+def cargar_empleados_demo() -> list[dict]:
+    """Carga (con caché) data/empleados_demo.json."""
+    if "empleados_demo" not in _CACHE:
+        _CACHE["empleados_demo"] = _cargar_json("empleados_demo.json", [])
+    return _CACHE["empleados_demo"]
+
+
+def cargar_casos_trampa_demo() -> list[dict]:
+    """Carga (con caché) data/casos_trampa.json."""
+    if "casos_trampa" not in _CACHE:
+        _CACHE["casos_trampa"] = _cargar_json("casos_trampa.json", [])
+    return _CACHE["casos_trampa"]
+
+
 def recargar_cache() -> None:
     """
     Limpia la caché en memoria. Útil para tests/demos si se modifican
@@ -396,7 +410,7 @@ def determinar_escalado(texto: str) -> str:
     return CATEGORIA_ESCALADO_POR_DEFECTO
 
 
-def obtener_contacto_escalado(categoria: str) -> Optional[str]:
+def obtener_contacto_escalado(categoria: str, manager: str) -> Optional[str]:
     """
     Traduce una categoría de escalado ("RRHH", "IT", "ONBOARDING") al email
     de contacto real, según data/empresa.json -> contactos.
@@ -410,7 +424,7 @@ def obtener_contacto_escalado(categoria: str) -> Optional[str]:
         "RRHH": contactos.get("rrhh"),
         "IT": contactos.get("it"),
         "ONBOARDING": contactos.get("onboarding"),
-        "MANAGER": None,
+        "MANAGER": manager,
     }
     return mapa.get(categoria)
 

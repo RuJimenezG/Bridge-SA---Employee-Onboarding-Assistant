@@ -1,11 +1,14 @@
 # Estado de la sesión del chat con el modelo
-
-def inicializar_estado() -> dict:
+def inicializar_estado(user_profile: dict | None = None, onboarding_day: int = 1) -> dict:
+    profile = dict(user_profile) if user_profile else {}
+    profile["onboarding_day"] = onboarding_day
     return {
-        "messages": [], # Historial del mensajes: {"turno": turno del mensaje, "role": "user"|"model", "text": str}
+        "user_profile": profile,
+        "messages": [], 
         "summary": "",
         "turnos": 0
     }
+
 
 # Añadir al estado el mensaje del usuario
 def append_user_msg(state: dict, texto: str) -> None:
@@ -19,7 +22,7 @@ def append_model_msg(state: dict, texto: str) -> None:
     state["turnos"] = turno_actual
     
 # Función para devolver los últimos n mensajes configurados en WINDOW
-def ultimos_n_mensajes (state: dict, n: int) -> list[dict]:
+def ultimos_n_mensajes (state: dict, n: int) -> str:
     lines = []
     all_messages = state.get("messages", [])
     # -n * 2 ya que cada turno se compone de dos mensajes
