@@ -114,7 +114,7 @@ def build_summary_block(summary: str) -> str:
     return (
         f"--- RESUMEN DE TODA LA CONVERSACIÓN HASTA AHORA ---\n"
         f"{summary}\n"
-        f"--- FIN DEL MENSAJE DEL USUARIO ---"
+        f"--- FIN DEL RESUMEN DE TODA LA CONVERSACIÓN HASTA AHORA ---\n"
     )
 
 
@@ -124,8 +124,8 @@ def build_question_block(question: str) -> str:
         return ""
     return (
         f"--- NUEVO MENSAJE DEL USUARIO ---\n"
-        f"{question}"
-        f"--- FIN DEL RESUMEN DE TODA LA CONVERSACIÓN HASTA AHORA ---\n"
+        f"{question}\n"
+        f"--- FIN DEL MENSAJE DEL USUARIO ---"
     )
 
 

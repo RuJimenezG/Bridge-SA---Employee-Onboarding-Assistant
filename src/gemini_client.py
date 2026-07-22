@@ -65,7 +65,7 @@ def llamar_gemini(prompt: str, system_prompt: str, temperature: float = TEMPERAT
 
 # Función para solicitar al LLM el resumen de la conversación pasándole el historial
 def llamar_gemini_resumen(prompt: str) -> str:
-    texto, _ = llamar_gemini(prompt, temperature=TEMPERATURE_RESUMEN)
+    texto, _ = llamar_gemini(prompt, system_prompt="", temperature=TEMPERATURE_RESUMEN)
     return texto
 
 

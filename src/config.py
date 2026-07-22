@@ -14,4 +14,4 @@ MAX_PROMPT_TOKENS = 4000
 WINDOW = 4
 
 # Frecuencia con la que se realiza resumen completo de la conversación para enviar al LLM. Indicar número de turnos.
-RESUMIR_CADA = 8
+RESUMIR_CADA = 4
