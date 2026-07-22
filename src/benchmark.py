@@ -1,12 +1,16 @@
 import json
 import csv
 import os
+import getpass
 from datetime import datetime
 from dotenv import load_dotenv
 
 import config
 from state import inicializar_estado
 from logic import decidir_checklist_o_consulta
+
+if not os.getenv("GEMINI_API_KEY"):
+    os.environ["GEMINI_API_KEY"] = getpass.getpass("Pega aquí tu GEMINI_API_KEY: ")
 
 load_dotenv()
 
