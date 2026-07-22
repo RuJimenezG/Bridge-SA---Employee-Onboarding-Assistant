@@ -31,14 +31,14 @@
     {
       "id": "caso_05",
       "departamento": "Operations",
-      "perfil": "remoto_ue",
+      "perfil": "remoto_eu",
       "pregunta": "¿Cuántos días de vacaciones tengo como empleado remoto en la UE?",
       "tipo": "legitima"
     },
     {
       "id": "caso_06",
       "departamento": "Operations",
-      "perfil": "remoto_ue",
+      "perfil": "remoto_eu",
       "pregunta": "¿Cómo gestiono mis gastos de oficina en casa?",
       "tipo": "legitima"
     },
@@ -66,7 +66,7 @@
     {
       "id": "caso_10",
       "departamento": "Operations",
-      "perfil": "remoto_ue",
+      "perfil": "remoto_eu",
       "pregunta": "¿Podéis ayudarme con un ejercicio del programa formativo externo de mi universidad?",
       "tipo": "limite_fuera_dominio"
     }
