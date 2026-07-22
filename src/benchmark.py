@@ -1,57 +1,52 @@
 import json
-import time
 import csv
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-import google.generativeai as genai
 
-# Cargar variables de entorno
+import config
+from state import inicializar_estado
+from logic import decidir_checklist_o_consulta
+
 load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Configuración
-MODELOS = ["gemini-1.5-flash", "gemini-1.5-pro"]
-TEMPERATURA = 0.2
+# Modelos
+MODELOS = ["gemini-3.1-flash-lite", "gemma-4-31b-it"]
 
-# Cargar casos del dataset
-with open("benchmark_cases.json", "r", encoding="utf-8") as f:
+# Cargar casos
+with open("../benchmark_cases.json", "r", encoding="utf-8") as f:
     casos = json.load(f)["casos"]
 
-def llamar_modelo(modelo_nombre, pregunta, perfil):
-    modelo = genai.GenerativeModel(
-        model_name=modelo_nombre,
-        generation_config={"temperature": TEMPERATURA}
-    )
-
-    prompt = f"""
-    Eres un asistente de onboarding para empleados nuevos de Bridge SA.
-    Perfil del empleado: {perfil}
-
-    Responde SOLO con información documentada.
-    Si no tienes información, indícalo claramente.
-    Si la pregunta es sobre salarios, datos de otros empleados o está fuera del dominio de onboarding, recházala.
-
-    Pregunta: {pregunta}
-    """
-
-    inicio = time.time()
-    respuesta = modelo.generate_content(prompt)
-    latencia = round(time.time() - inicio, 2)
-    tokens = respuesta.usage_metadata.total_token_count if hasattr(respuesta, "usage_metadata") else 0
-
-    return respuesta.text, latencia, tokens
 
 def ejecutar_benchmark():
     resultados = []
 
-    for caso in casos:
-        print(f"\nEjecutando {caso['id']} — {caso['tipo']}...")
+    for modelo in MODELOS:
+        print(f"\n{'='*50}")
+        print(f"Modelo: {modelo}")
+        print(f"{'='*50}")
 
-        for modelo in MODELOS:
-            print(f"  Modelo: {modelo}")
+        config.MODEL = modelo
+
+        for caso in casos:
+            print(f"\n  Caso {caso['id']} [{caso['tipo']}]: {caso['pregunta'][:60]}...")
+
+            state = inicializar_estado(
+                user_profile={
+                    "departamento": caso["departamento"],
+                    "perfil": caso["perfil"],
+                    "manager": "manager@bridgesa.example"
+                },
+                onboarding_day=1
+            )
+
             try:
-                respuesta, latencia, tokens = llamar_modelo(modelo, caso["pregunta"], caso["perfil"])
+                resultado = decidir_checklist_o_consulta(state, caso["pregunta"])
+                status = resultado.get("status", "error")
+                data = resultado.get("data", {})
+                metricas = data.get("metricas", {})
+                respuesta = data.get("respuesta", resultado.get("mensaje", ""))
+
                 resultados.append({
                     "caso_id": caso["id"],
                     "tipo": caso["tipo"],
@@ -59,21 +54,43 @@ def ejecutar_benchmark():
                     "perfil": caso["perfil"],
                     "pregunta": caso["pregunta"],
                     "modelo": modelo,
-                    "respuesta": respuesta[:300],
-                    "latencia_seg": latencia,
-                    "tokens": tokens,
+                    "status": status,
+                    "respuesta": str(respuesta)[:300],
+                    "latencia_ms": metricas.get("elapsed_ms", ""),
+                    "prompt_tokens": metricas.get("prompt_tokens", ""),
+                    "output_tokens": metricas.get("output_tokens", ""),
+                    "total_tokens": metricas.get("total_tokens", ""),
                     "fidelidad": "",
                     "tono": "",
                 })
+                print(f"  Status: {status} | Tokens: {metricas.get('total_tokens', 'N/A')} | Latencia: {metricas.get('elapsed_ms', 'N/A')}ms")
+
             except Exception as e:
-                print(f"  Error con {modelo}: {e}")
+                print(f"  Error: {e}")
+                resultados.append({
+                    "caso_id": caso["id"],
+                    "tipo": caso["tipo"],
+                    "departamento": caso["departamento"],
+                    "perfil": caso["perfil"],
+                    "pregunta": caso["pregunta"],
+                    "modelo": modelo,
+                    "status": "exception",
+                    "respuesta": str(e)[:300],
+                    "latencia_ms": "",
+                    "prompt_tokens": "",
+                    "output_tokens": "",
+                    "total_tokens": "",
+                    "fidelidad": "",
+                    "tono": "",
+                })
 
     return resultados
 
+
 def guardar_csv(resultados):
-    os.makedirs("output", exist_ok=True)
+    os.makedirs("../output", exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    ruta = f"output/benchmark_{timestamp}.csv"
+    ruta = f"../output/benchmark_{timestamp}.csv"
 
     with open(ruta, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=resultados[0].keys())
@@ -83,8 +100,11 @@ def guardar_csv(resultados):
     print(f"\nResultados guardados en {ruta}")
     return ruta
 
+
 if __name__ == "__main__":
     print("Iniciando benchmark...")
+    print(f"Modelos: {MODELOS}")
+    print(f"Casos: {len(casos)}")
     resultados = ejecutar_benchmark()
     guardar_csv(resultados)
-    print("Benchmark completado.")
+    print("\nBenchmark completado.")
