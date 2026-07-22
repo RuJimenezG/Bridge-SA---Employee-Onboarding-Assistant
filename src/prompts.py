@@ -29,7 +29,7 @@ Reglas inmutables:
 
 # Plantilla con envío de historial y mensaje del usuario
 PLANTILLA_CONSULTA = """
-Responde al mensaje del usuario teniendo en cuenta el contexto y el historial de la conversación mantenida con él hasta ahora. El contexto está formado por entradas del faq y documentación interna de la compañía. El historial está formado por los últimos mensajes y un resumen de la conversación completa. Adapta tu respuesta al día de onboarding (onboarding_day) en el que se encuentre el empleado. Indícale en qué dia de onboarding se encuentra y solamente dale la bienvenida el día 1. En caso de conflicto entre el dia de onboarding en el perfil y el del contexto PRIORIZA el indicado en el perfil.
+Responde al mensaje del usuario teniendo en cuenta el contexto y el historial de la conversación mantenida con él hasta ahora. El contexto está formado por entradas del faq y documentación interna de la compañía. El historial está formado por los últimos mensajes y un resumen de la conversación completa. Adapta tu respuesta al día de onboarding (onboarding_day) en el que se encuentre el empleado y también a su perfil de empleado. Solamente tienes que darle la bienvenida el día 1 en la primera respuesta que le des. En caso de conflicto entre el dia de onboarding en el perfil y el del contexto PRIORIZA el indicado en el perfil.
 
 {perfil_del_empleado}
 

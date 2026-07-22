@@ -1,7 +1,7 @@
 from gemini_client import safe_generate
 
 from state import inicializar_estado
-from logic import responder_consulta, responder_checklist_diario, decidir_checklist_o_consulta
+from logic import responder_consulta, decidir_checklist_o_consulta
 from context import cargar_empleados_demo, cargar_casos_trampa_demo
 from validators import validar
 
@@ -13,6 +13,93 @@ def imprimir_metricas(respuesta:dict) -> None:
         print(f"{'ms':<6} {'in':>6} {'out':>6} {'total':>6}")
         print("-" * 30)
         print(f"{respuesta.get("data", {}).get("metricas").get("elapsed_ms"):<6} {respuesta.get("data", {}).get("metricas").get("prompt_tokens"):>6} {respuesta.get("data", {}).get("metricas").get("output_tokens"):>6} {respuesta.get("data", {}).get("metricas").get("total_tokens"):>6}")
+
+
+# Demo 1: conversación de 1 turno (empleado tipo dev junior)
+def demo_un_turno() -> None:
+    # 1. Cargar empleado tipo dev junior. Inicializar estado.
+    empleados = cargar_empleados_demo()
+    state = inicializar_estado(empleados[0])
+    # 2. Inicio de la demostración
+    print("+++ Iniciando DEMOSTRACIÓN de CONVERSACIÓN DE UN TURNO:")
+    print("=" * 30 + "\n")
+    # 3. Mensaje del usuario
+    mensaje = "Hola. Es mi primerito día. ¿Qué hago con el portátil que me han enviado?"
+    # 4. Llamada al modelo en función del mensaje
+    respuesta = decidir_checklist_o_consulta(state, mensaje)
+    # 5. Imprimir pregunta, respuesta y métricas
+    print(f"Pregunta: \n{mensaje}\n")
+    print(f"Respuesta: ")
+    if respuesta.get("status") == "ok":
+        print(respuesta.get("data", {}).get("respuesta") + "\n")
+        imprimir_metricas(respuesta)
+    # 6. Imprimir errores si los hay
+    else:
+        print(f"Status: {respuesta.get("status")} - {respuesta.get("mensaje")}")
+        print("ERRORES: ")
+        print(f"{respuesta.get("errores")}")
+    print("=" * 30 + "\n")
+    print("+++ FIN DE LA DEMOSTRACIÓN\n\n")
+    print("#" * 50 + "\n\n")
+    
+# Demo 2: checklist JSON para día 1
+def demo_checklist_dia1() -> None:
+    # 1. Cargar empleado. Inicializar estado.
+    empleados = cargar_empleados_demo()
+    state = inicializar_estado(empleados[3])
+    # 2. Inicio de la demostración
+    print("+++ Iniciando DEMOSTRACIÓN de CHECKLIST DIA 1:")
+    print("=" * 30 + "\n")
+    # 3. Mensaje del usuario
+    mensaje = "Hola, soy Miguel, el empleado número 4. ¿Qué tengo que hacer en mi día 1?"
+    # 4. Llamada al modelo en función del mensaje
+    respuesta = decidir_checklist_o_consulta(state, mensaje)
+    # 5. Imprimir pregunta, respuesta y métricas
+    print(f"Pregunta: \n{mensaje}\n")
+    print(f"Respuesta: ")
+    if respuesta.get("status") == "ok":
+        print(respuesta.get("data", {}).get("respuesta") + "\n")
+        imprimir_metricas(respuesta)
+    # 6. Imprimir errores si los hay
+    else:
+        print(f"Status: {respuesta.get("status")} - {respuesta.get("mensaje")}")
+        print("ERRORES: ")
+        print(f"{respuesta.get("errores")}")
+    print("=" * 30 + "\n")
+    print("+++ FIN DE LA DEMOSTRACIÓN\n\n")
+    print("#" * 50 + "\n\n")
+
+# Demo 3: Mismo mensaje con empleado comercial vs remoto UE 
+def demo_comercial_vs_remoto():
+    # 1. Cargar empleados
+    empleados = cargar_empleados_demo()
+    # 2. Empleado con índice 2 -> remoto_eu, índice 3 -> comercial
+    empleados_comparar = (2, 3)
+    # 3. Inicio de la demostración e iteración
+    print("+++ Iniciando DEMOSTRACIÓN de EMPLEADO COMERCIAL vs REMOTO UE:")
+    print("=" * 30 + "\n")
+    for i in empleados_comparar:
+    # 3. Cargar empleado. Inicializar estado.
+        state = inicializar_estado(empleados[i])
+        # 4. Mensaje del usuario
+        mensaje = "¿Dónde tengo que recoger mi equipo de trabajo?"
+        # 5. Llamada al modelo en función del mensaje
+        respuesta = decidir_checklist_o_consulta(state, mensaje)
+        # 6. Imprimir pregunta, respuesta y métricas
+        print(f"Perfil: {state.get("user_profile").get("perfil")}")
+        print(f"Pregunta: \n{mensaje}\n")
+        print(f"Respuesta: ")
+        if respuesta.get("status") == "ok":
+            print(respuesta.get("data", {}).get("respuesta") + "\n")
+            imprimir_metricas(respuesta)
+        # 7. Imprimir errores si los hay
+        else:
+            print(f"Status: {respuesta.get("status")} - {respuesta.get("mensaje")}")
+            print("ERRORES: ")
+            print(f"{respuesta.get("errores")}")
+        print("=" * 30 + "\n")
+    print("+++ FIN DE LA DEMOSTRACIÓN")
+    print("#" * 50 + "\n\n")
 
 # DEMOSTRACIÓN con varios turnos de pregunta
 def demo_cosultas_asistente() -> None:
@@ -110,7 +197,7 @@ def demo_casos_trampa() -> None:
 def demo_checklist() -> None:
     # 1. Inicializar estado
     empleados = cargar_empleados_demo()
-    state = inicializar_estado()
+    state = inicializar_estado(empleados[0])
     # 2. Inicio de la demostración
     print("+++ Iniciando DEMOSTRACIÓN del checklist:")
     print("=" * 30 + "\n")
@@ -118,7 +205,10 @@ def demo_checklist() -> None:
     mensajes_usuario = [
         "Laura (`emp_01`), dev junior, **día 1**",
         "Pablo Navarro (emp_02), comercial, **dia 5**",
-        "¿Cuántos días de vacaciones tengo?"
+        "¿Cuántos días de vacaciones tengo?",
+        "¿Cómo se llama mi manager?",
+        "¿A qué hora puedo salir a comer?",
+        "Laura (emp_1), dev junior, dia 3"
     ]
     # 4. Iteración sobre los casos
     for mensaje in mensajes_usuario:
@@ -183,8 +273,11 @@ def demo_vulnerable_vs_seguro() -> None:
     print("Fin de la DEMO VULNERABLE VS SEGURO")
 
 
-
-# demo_casos_trampa()
-# demo_cosultas_asistente()
-# demo_checklist()
-demo_vulnerable_vs_seguro()
+if __name__ == "__main__":
+    demo_un_turno()
+    demo_checklist_dia1()
+    demo_comercial_vs_remoto()
+    demo_vulnerable_vs_seguro()
+    # demo_casos_trampa()
+    # demo_cosultas_asistente()
+    # demo_checklist()
