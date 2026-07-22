@@ -359,24 +359,74 @@ def obtener_docs_por_dia(
 
 CATEGORIAS_ESCALADO: dict[str, list[str]] = {
     "RRHH": [
-        "vacaciones", "baja", "contrato", "nomina", "nómina", "salario",
-        "despido", "permiso", "maternidad", "paternidad", "medico",
-        "médico", "laboral", "conflicto", "acoso", "denuncia", "people",
-        "recursos humanos",
+        # Ausencias y vacaciones
+        "vacaciones", "baja", "permiso", "maternidad", "paternidad", 
+        "baja medica", "baja médica", "parte de baja", "alta medica", "alta médica", "fallecimiento", "mudanza", "festivos", "dias libres", "días libres",
+        
+        # Nómina y compensación
+        "nomina", "nómina", "salario", "irpf", "retencion", "retención", 
+        "pago", "remuneracion", "remuneración", "beneficios", "retribucion flexible", "retribución flexible", "tickets restaurante",
+        
+        # Contratación y legal
+        "contrato", "despido", "laboral", "jubilacion", "jubilación",
+        
+        # Salud, prevención y bienestar
+        "medico", "médico", "seguro medico", "seguro médico", "mutua",
+        
+        # Conflictos, denuncias y departamento
+        "conflicto", "acoso", "denuncia", "people", "recursos humanos", "rrhh", "hr",
     ],
     "IT": [
-        "acceso", "contraseña", "password", "vpn", "ordenador", "laptop",
-        "correo", "email", "cuenta", "software", "instalacion",
-        "instalación", "red", "wifi", "dispositivo", "ticket",
-        "soporte tecnico", "soporte técnico",
+        # Accesos y credenciales
+        "acceso", "contraseña", "password", "vpn", "correo", "email", 
+        "cuenta", "credenciales", "reset", "restablecer", "mfa", "2fa", 
+        "autenticacion", "autenticación", "permisos",
+        
+        # Hardware y periféricos
+        "ordenador", "laptop", "dispositivo", "pantalla", "monitor", 
+        "teclado", "raton", "ratón", "hardware", "equipo informatico",
+        
+        # Redes y conectividad
+        "red", "wifi",
+        
+        # Software y herramientas
+        "software", "instalacion", "instalación", "solicitar software", 
+        "slack", "github", "jira", "confluence", "antivirus",
+        
+        # Soporte, errores e incidencias
+        "ticket", "soporte tecnico", "soporte técnico", "pantallazo", 
+        "error", "bloqueo", "bloqueada",
     ],
     "MANAGER": [
-        "objetivo", "kpi", "rendimiento", "evaluacion", "evaluación",
-        "proyecto", "tarea asignada", "sprint", "reunion de equipo",
-        "reunión de equipo", "one to one", "feedback", "prioridad",
+        # Metodología y seguimiento
+        "objetivo", "objetivos", "kpi", "sprint", "prioridad", 
+        "plan de trabajo", "dudas de tareas", "entrega", "deadline",
+        
+        # Rendimiento y evaluación
+        "rendimiento", "evaluacion", "evaluación", "feedback", 
+        "expectativas", "revision", "revisión", "desempeño",
+        
+        # Reuniones e interacción directa
+        "proyecto", "tarea asignada", "reunion de equipo", "reunión de equipo", "sprint", "one to one", "1:1", "1 on 1", "reunion 1:1",
+        
+        # Roles de liderazgo
+        "jefe", "jefa", "responsable", "lider", "líder",
     ],
     "ONBOARDING": [
+        # Contacto directo
         "onboarding@bridgesa.example",
+        
+        # Términos generales del proceso
+        "onboarding", "incorporacion", "incorporación", "bienvenida", 
+        "primer dia", "primer día", "primeras semanas", "proceso de acogida", 
+        "plan de acogida", "checklist",
+        
+        # Roles y acompañamiento
+        "buddy", "tutor", "mentor", "compañero de bienvenida",
+        
+        # Eventos e hitos iniciales
+        "sesion de bienvenida", "sesión de bienvenida", "charla inicial", 
+        "dia 1", "día 1", "orientacion", "orientación", "integracion", "integración",
     ],
 }
 
