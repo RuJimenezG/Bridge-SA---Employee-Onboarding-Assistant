@@ -292,10 +292,3 @@ def elegir_demo_chat() -> None:
 
 if __name__ == "__main__":
     elegir_demo_chat()
-    # demo_un_turno()
-    # demo_checklist_dia1()
-    # demo_comercial_vs_remoto()
-    # demo_vulnerable_vs_seguro()
-    # demo_casos_trampa()
-    # demo_cosultas_asistente()
-    # demo_checklist()
