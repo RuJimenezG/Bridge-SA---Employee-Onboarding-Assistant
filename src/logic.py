@@ -2,7 +2,7 @@
 
 from config import RESUMIR_CADA, WINDOW, TEMPERATURE_JSON
 from gemini_client import MetricasLlamada
-from state import historial_como_texto, set_summary, ultimos_n_mensajes, append_user_msg, append_model_msg
+from state import historial_como_texto, set_summary, ultimos_n_mensajes, append_user_msg, append_model_msg, inicializar_estado
 from prompts import build_resumen_prompt, build_question_prompt, build_checklist_prompt, SYSTEM_PROMPT_CONSULTA, SYSTEM_PROMPT_CHECKLIST
 from gemini_client import llamar_gemini_resumen, safe_generate
 from context import seleccionar_faq, seleccionar_documento, determinar_escalado, obtener_contacto_escalado, recargar_cache, cargar_empleados_demo
@@ -159,3 +159,45 @@ def decidir_checklist_o_consulta(state: dict, consulta: str) -> dict:
         return responder_checklist_diario(state, consulta)
     else:
         return responder_consulta(state, consulta)
+    
+
+def chat_interactivo():
+    print("==================================================")
+    print("   Iniciando Chat con Memoria en Bucle Activo")
+    print("   Escribe 'salir', 'exit' o 'q' para terminar.")
+    print("==================================================\n")
+    
+    # 1. Inicializar el estado una sola vez antes de entrar al bucle
+    # Esto mantiene la memoria de la sesión activa en la RAM de Python
+    empleados = cargar_empleados_demo()
+    state = inicializar_estado(empleados[0])
+    # 2. Iniciamor el bucle interactivo de turnos
+    while True:
+        try:
+            # Capturar el prompt del usuario desde la terminal
+            pregunta_usuario = input("\n[Tú] > ")
+            # Condición de salida para romper el bucle y terminar la sesión de Python
+            if pregunta_usuario.strip().lower() in ["salir", "exit", "q", "quit"]:
+                print("\nTerminando sesión de chat. ¡Hasta luego!")
+                break
+            if not pregunta_usuario.strip():
+                continue # Evita procesar strings vacíos
+            # Llamar a Gemini con una de las dos funcionalidades
+            resultado = decidir_checklist_o_consulta(state, pregunta_usuario)
+            
+            if resultado.get("status") == "ok":
+                respuesta_llm = resultado["data"]["respuesta"]
+                metricas = resultado["data"].get("metricas", {})
+                              
+                # Imprimir la respuesta en pantalla
+                print(f"\n[Asistente] > {respuesta_llm}")
+                
+                # Imprimir métricas útiles de tokens para auditar el consumo
+                print(f"--- [Métricas de llamada]: {metricas.get('total_tokens', 0)} tokens totales | Latencia: {metricas.get('elapsed_ms', 0)}ms ---")
+            else:
+                print(f"\n[Error]: {resultado.get('mensaje')}")
+                
+        except KeyboardInterrupt:
+            # Permite salir limpiamente pulsando Ctrl+C en la terminal
+            print("\n\nSesión interrumpida con Ctrl+C. ¡Hasta luego!")
+            break

@@ -1,7 +1,7 @@
 from gemini_client import safe_generate
 
 from state import inicializar_estado
-from logic import responder_consulta, decidir_checklist_o_consulta
+from logic import responder_consulta, decidir_checklist_o_consulta, chat_interactivo
 from context import cargar_empleados_demo, cargar_casos_trampa_demo
 from validators import validar
 
@@ -273,11 +273,29 @@ def demo_vulnerable_vs_seguro() -> None:
     print("Fin de la DEMO VULNERABLE VS SEGURO")
 
 
+# Elegir demo o chat interactivo
+def elegir_demo_chat() -> None:
+    eleccion = input("Por favor introduzca un nº para elegir:\n1 -> Demo preconfigurada\n2 -> Chat (con perfil precargado)\n")
+    if eleccion == "1":
+        demo_un_turno()
+        demo_checklist_dia1()
+        demo_comercial_vs_remoto()
+        demo_vulnerable_vs_seguro()
+        # demo_casos_trampa()
+        # demo_cosultas_asistente()
+        # demo_checklist()
+    elif eleccion == "2":
+        chat_interactivo()
+    else: 
+        print("No se introdujo ninguna opción correcta.")
+
+
 if __name__ == "__main__":
-    demo_un_turno()
-    demo_checklist_dia1()
-    demo_comercial_vs_remoto()
-    demo_vulnerable_vs_seguro()
+    elegir_demo_chat()
+    # demo_un_turno()
+    # demo_checklist_dia1()
+    # demo_comercial_vs_remoto()
+    # demo_vulnerable_vs_seguro()
     # demo_casos_trampa()
     # demo_cosultas_asistente()
     # demo_checklist()
