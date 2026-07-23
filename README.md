@@ -129,6 +129,13 @@ python main.py
 ```
 
 ### Modos de Demostración Disponibles:
+El sistema cuenta con un selector principal para elegir entre la ejecución de las demos preconfiguradas o un modo de chat libre.
+```
+Por favor introduzca un nº para elegir:
+1 -> Demo preconfigurada
+2 -> Chat (con perfil precargado)
+```
+
 #### Ejecutar las Demos Principales
 El archivo src/main.py incluye diferentes escenarios preconfigurados.
 ```
