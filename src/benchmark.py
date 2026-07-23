@@ -45,7 +45,7 @@ def ejecutar_benchmark():
             )
 
             try:
-                resultado = decidir_checklist_o_consulta(state, caso["pregunta"])
+                resultado = decidir_checklist_o_consulta(modelo, state, caso["pregunta"])
                 status = resultado.get("status", "error")
                 data = resultado.get("data", {})
                 metricas = data.get("metricas", {})
