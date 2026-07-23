@@ -8,20 +8,61 @@ Copiloto conversacional e interactivo diseñado para acompañar a los nuevos emp
 
 ## 🛠️ Arquitectura del Sistema
 
-El proyecto está diseñado bajo una arquitectura modular en Python para garantizar la separación de responsabilidades, la robustez del servicio y la trazabilidad de métricas:
+El flujo de procesamiento sigue una arquitectura modular en pipeline para garantizar la seguridad, la robustez, la trazabilidad de métricas y la separación de responsabilidades:
+
+```mermaid
+flowchart TD
+    A[User Input] --> B[validators.py: Robustez y Seguridad]
+    B -- Inyección / Sensible / Out-of-Scope --> C[Respuesta Bloqueada / Guardrail]
+    B -- Válido --> D[logic.py: Enrutador de Consulta]
+    
+    D -- Tipo Consulta --> E[context.py: Filtro de contexto max 3 Docs + 2 FAQ]
+    D -- Tipo Checklist --> F[context.py: Carga Plan Onboarding por Día]
+    
+    E --> G[prompts.py: Ensamblado de Prompt + Historial + Escalado]
+    F --> G
+    
+    G --> H[gemini_client.py: safe_generate]
+    H --> I[Google Gemini API]
+    I --> J[state.py: Actualización Historial y Resumen]
+    J --> K[Output Final + Métricas]
+```
+
+## 📂 Estructura del Repositorio
+
+La estructura modular del repositorio obedece a la separación de los distintos componentes de Python, datos y outputs, de forma clara que facilite la navegación y la compresión del proyecto:
 
 ```text
-├── config.py           # Variables globales, límites de tokens, temperaturas y constantes
-├── gemini_auth.py      # Autenticación y carga segura de la API Key (.env)
-├── gemini_client.py    # Cliente LLM, wrapper seguro (safe_generate) y captura de métricas
-├── context.py          # Contexto ligero: Carga en memoria, selección de docs/FAQ y política de escalado
-├── prompts.py          # Plantillas de prompts dinámicos (resumen, consulta, checklist)
-├── state.py            # Gestión del estado conversacional, historial y memoria comprimida
-├── validators.py       # Guardrails: Filtro de inyecciones, contenido sensible y dominio
-├── logic.py            # Orquestación del flujo, resúmenes automáticos y lógica de decisión
-├── main.py             # Punto de entrada y demostraciones interactivas / casos trampa
-└── data/               # Lore de Bridge SA (empresa.json, onboarding_docs.json, faq_onboarding.json)
+Bridge-SA---Employee-Onboarding-Assistant/
+├── README.md
+├── requirements.txt
+├── .env.example
+├── .gitignore
+├── src/ 
+│   ├── config.py              # Variables globales, límites de tokens, temperaturas y constantes
+│   ├── gemini_auth.py         # Autenticación y carga segura de la API Key (.env)
+│   ├── gemini_client.py       # Cliente LLM, wrapper seguro (safe_generate) y captura de métricas
+│   ├── context.py             # Contexto ligero: Carga en memoria, selección de docs/FAQ y política de escalado
+│   ├── prompts.py             # Plantillas de prompts dinámicos (resumen, consulta, checklist)
+│   ├── state.py               # Gestión del estado conversacional, historial y memoria comprimida
+│   ├── logic.py               # Orquestación del flujo, resúmenes automáticos y lógica de decisión
+│   ├── validators.py          # Guardrails: Filtro de inyecciones, contenido sensible y dominio
+│   ├── main.py                # Punto de entrada y demostraciones interactivas / casos trampa
+│   └── benchmark.py           # Parte 4 — ejecución del benchmark y export a output/
+├── data/                      # Lore de Bridge SA y documentación base para el contexto
+│   ├── casos_trampa_ejemplo.json
+│   ├── empleados_demo.json
+│   ├── empresa.json
+│   ├── faq_onboarding.json
+│   ├── onboarding_docs.json
+│   └── plantilla_preguntas_benchmark.json
+├── entregables/               # Conclusiones finales
+│   ├── matriz_decision.md
+│   ├── recomendacion.md
+│   └── rubrica_benchmark.md
+└── output/                    # resultados de benchmark
 ```
+
 
 ## 🚀 Características Principales
 - Contexto Ligero: Filtrado dinámico por palabras clave y etiquetas (tags) limitando el contexto a un máximo de 3 documentos y 2 entradas FAQ por consulta para no saturar la ventana de contexto.
@@ -70,7 +111,11 @@ pip install -r requirements.txt
 
 ### 4. Configurar variables de entorno
 
-Crea un archivo .env en la raíz del proyecto (basado en .env.example si existe) e introduce tu API Key:
+Crea un archivo .env en la raíz del proyecto basándote en la plantilla:
+```
+cp .env.example .env
+```
+Añade tu clave API de Gemini en el archivo .env:
 
 ```
 GEMINI_API_KEY=tu_api_key_aqui
@@ -84,18 +129,65 @@ python main.py
 ```
 
 ### Modos de Demostración Disponibles:
+#### Ejecutar las Demos Principales
+El archivo src/main.py incluye diferentes escenarios preconfigurados.
+```
+cd src
+python main.py
+```
 
-1. Consultas Multiturno (demo_cosultas_asistente): Simula una conversación real evaluando el mantenimiento del contexto, escalados automáticos a IT/Manager y la medición de tiempos y tokens por respuesta.
+1. Consulta de un solo turno (demo_un_turno). Simula la respuesta a una única consulta de un empleado con perfil dev_junior.
 
-2. Generación de Checklist (demo_checklist): Evalúa la salida en formato JSON estructurado para el plan de tareas según el día de incorporación del empleado.
+2. Checklist del día uno (demo_checklist_dia1). Simula la respuesta a la petición del checklist del primer día de onboarding.
 
-3. Pruebas de Robustez / Casos Trampa (demo_casos_trampa): Demuestra la interceptación de intentos de jailbreak, preguntas sensibles y solicitudes de cambio de rol gracias a la capa de validación previa.
+3. Respuestas distintas a la misma pregunta en función del perfil (demo_comercial_vs_remoto). Ejemplo de ejecución:
+    - Pregunta: ¿Dónde tengo que recoger mi equipo de trabajo?
+    - Respuesta remoto:
+
+        ¡Hola, Sofia! Bienvenida a Bridge SA, es un placer tenerte con nosotros en el equipo de Engineering.
+
+        Sobre tu consulta, al ser una empleada en modalidad remota con ubicación en Lisboa, el equipo de IT se encarga de enviarte el portátil directamente a tu domicilio. Según nuestra documentación (doc_it_01), el equipo debería haber llegado entre 3 y 5 días laborables antes de tu fecha de inicio.
+
+        Si aún no has recibido tu equipo, por favor contacta directamente con **it@bridgesa.example** indicando tu ID de empleado (**emp_03**) para que puedan revisar el estado del envío.
+
+        ¿Hay algo más en lo que pueda ayudarte hoy en tu primer día?
+
+    - Respuesta comercial: 
+
+        ¡Hola, Miguel Ángel! Bienvenido a tu primer día en Bridge SA. Es un placer tenerte con nosotros en el equipo de Operations.
+
+        Respecto a tu consulta sobre el equipo de trabajo, según nuestra documentación interna (doc_it_01), el portátil se envía directamente a tu domicilio entre 3 y 5 días laborables antes de tu fecha de inicio, siempre que te encuentres en España o Portugal peninsular.
+
+        Si el equipo no te ha llegado a tiempo, por favor, escribe directamente a **it@bridgesa.example** indicando tu ID de empleado (**emp_04**) para que puedan revisar el estado del envío.
+
+        ¿Hay algo más en lo que pueda ayudarte hoy?
+
+4. Comprobación del comportamiento con validación y sin validación del input (demo_vulnerable_vs_seguro). Simula la respuesta a varias preguntas cuando se hace validaciónd el input y en el caso contrario.
+
+#### Demos extra
+Las demos extra se encuentran comentadas en el archivo src/main.py. Para poder ejecutarlas, primero elimina los comentarios y ejecuta el archivo:
+
+5. Consultas Multiturno (demo_cosultas_asistente): Simula el envío de diferentes mensajes en distintos días de onboarding.
+
+6. Generación de Checklist (demo_checklist): Evalúa la salida en formato JSON estructurado para el plan de tareas según el día de incorporación del empleado, con varias consultas entre medias que devuelven respuestas en texto normal.
+
+7. Pruebas de Robustez / Casos Trampa (demo_casos_trampa): Demuestra la interceptación de intentos de jailbreak, preguntas sensibles y solicitudes de cambio de rol gracias a la capa de validación previa.
+
+**Puedes modificar el contenido de las demos para ejecutar tus propias pruebas**
+
+#### Ejecutar el Benchmark Comparativo
+Para lanzar la suite de evaluación sobre los modelos configurados y generar un informe en la carpeta output/:
+
+```
+cd src
+python benchmark.py
+```
 
 ## 📊 Evaluation & Benchmark
 
 El proyecto incluye un entorno de evaluación comparativa situado en la carpeta output/ para analizar el rendimiento de distintos modelos bajo el mismo banco de pruebas (mínimo 10 casos):
 
-- Modelos Evaluados: gemini-3.1-flash-lite vs gemma-4-31b-it (u otros proveedores como OpenAI/Cohere).
+- Modelos Evaluados: gemini-3.1-flash-lite vs gemma-4-31b-it.
 
 - Métricas Medidas:
 
@@ -105,8 +197,17 @@ El proyecto incluye un entorno de evaluación comparativa situado en la carpeta 
 
     - Adherencia al Formato: Cumplimiento del esquema JSON en el checklist y alineación con las reglas de seguridad.
 
+En base a la evaluación realizada se ha concluido que el mejor modelo para el proyecto es gemma-4-31b-it.
+
 Para revisar los resultados detallados y los informes del benchmark, consulta:
 
 - entregables/matriz_decision.md
 
 - entregables/recomendacion.md
+
+## 🛡️ Seguridad y Consideraciones Éticas
+Diseño frente a fallos: Ante cualquier fallo en las capas intermadias, la respuesta del sistema prioriza el error seguro.
+
+Gestión de Privacidad: No se persisten datos de carácter personal ni credenciales en el repositorio.
+
+Aviso Académico: La empresa Bridge SA, su plantilla y documentación son ficticios y creados con fines exclusivamente didácticos.
