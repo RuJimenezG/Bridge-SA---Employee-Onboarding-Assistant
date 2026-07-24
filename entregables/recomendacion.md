@@ -6,20 +6,20 @@ El asistente ayuda a empleados nuevos de Bridge SA durante sus primeros días: r
 
 ## Modelo recomendado para producción
 
-Modelo gemini elegido para chat en tiempo real **gemma-4-31b-it**
+Modelo elegido para chat en tiempo real: **gemini-3.1-flash-lite**
 
 ## Modelo alternativo (opcional)
 
-**gemini-3.1-flash-lite** para tareas como la generación de checklists, donde la latencia importa menos.
+**gemma-4-31b-it** podría usarse para tareas donde la latencia no sea crítica, pero los tiempos de 16-22 segundos lo hacen inviable para un chat en tiempo real.
 
 ## Trade-off principal
 
-Con gemma ganamos velocidad de respuesta y es gratuito con un límite "generoso" (1.500 llamadas/día), lo que lo hace más viable para un despliegue real. Lo que perdemos es algo de consistencia en preguntas donde la documentación interna no tiene respuesta directa — en esos casos los dos modelos se comportan igual de bien (o igual de mal).
+Con gemini-3.1-flash-lite ganamos velocidad — entre 15 y 20 veces más rápido que gemma (1-1.5 segundos vs 16-22 segundos) con una calidad de respuesta equivalente en todos los casos. Lo que perdemos es algo de margen en el límite de llamadas diarias comparado con gemma, aunque sigue siendo suficiente para el volumen esperado.
 
 ## ¿Qué pasaría si duplicáramos el tráfico?
 
-Si duplicamos trafico en tareas de onboarding, el numero de llamadas a la API también se duplica. Con gemma-4-31b-it tenemos margen con el límite de 1.500 llamadas/día pero habría que vigilar posibles picos como por ejemplo los del día 1 del onboarding.
+Si duplicamos el tráfico en tareas de onboarding, el número de llamadas a la API también se duplica. Con gemini-3.1-flash-lite habría que vigilar posibles picos, especialmente los del día 1 del onboarding donde varios empleados pueden empezar a la vez.
 
 ## Riesgo o condición
 
-No usaríamos gemma-4-31b-it si la documentación interna no está al día — el asistente deriva correctamente pero deja al empleado sin respuesta útil justo en sus primeros días, que es cuando más la necesita. Se debería validar que la documentación está actualizada para que se derive al dpto correcto y no deje al usuario sin respuesta.
+No usaríamos gemini-3.1-flash-lite si la documentación interna no está al día — el asistente deriva correctamente pero deja al empleado sin respuesta útil justo en sus primeros días, que es cuando más la necesita. Se debería validar que la documentación está actualizada para que se derive al dpto correcto y no deje al usuario sin respuesta.
