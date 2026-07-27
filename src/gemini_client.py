@@ -47,12 +47,12 @@ def _metrics_from_response(response, started: float) -> MetricasLlamada:
     
 
 # Función para llamar a Gemini, pasarle un prompt y que devuelva una tupla que contiene un string con la respuesta y un objeto MetricasLlamada
-def llamar_gemini(prompt: str, system_prompt: str, temperature: float = TEMPERATURE, json_switch: bool = False) -> tuple[str, MetricasLlamada]:
+def llamar_gemini(model: str, prompt: str, system_prompt: str, temperature: float = TEMPERATURE, json_switch: bool = False) -> tuple[str, MetricasLlamada]:
     # Tiempo inicial
     started = time.time()
     # Respuesta
     response = _client().models.generate_content(
-        model=MODEL,
+        model=model,
         contents=prompt,
         config=types.GenerateContentConfig(
             temperature=temperature,
@@ -60,12 +60,17 @@ def llamar_gemini(prompt: str, system_prompt: str, temperature: float = TEMPERAT
             system_instruction=system_prompt
             )
     )
+    #### DEBUG ####
+    print("---- response.model_version ----")
+    print(response.model_version)
+    print("---- response.model_version ----")
+
     return (response.text or "").strip(), _metrics_from_response(response, started)
 
 
 # Función para solicitar al LLM el resumen de la conversación pasándole el historial
-def llamar_gemini_resumen(prompt: str) -> str:
-    texto, _ = llamar_gemini(prompt, system_prompt="", temperature=TEMPERATURE_RESUMEN)
+def llamar_gemini_resumen(model: str, prompt: str) -> str:
+    texto, _ = llamar_gemini(model, prompt, system_prompt="", temperature=TEMPERATURE_RESUMEN)
     return texto
 
 
@@ -76,10 +81,10 @@ def count_tokens(contents: str) -> int:
 
 
 # Función para comprobar si se exceden los tokens del prompt antes de llamar a Gemini
-def safe_generate(prompt:str, system_prompt: str, temperature = TEMPERATURE, json_switch: bool = False) -> tuple[str, MetricasLlamada]:
+def safe_generate(model: str,prompt:str, system_prompt: str, temperature = TEMPERATURE, json_switch: bool = False) -> tuple[str, MetricasLlamada]:
     tokens_prompt = count_tokens(prompt)
     if tokens_prompt > MAX_PROMPT_TOKENS:
         raise ValueError(
             f"Prompt demasiado grande: {tokens_prompt}. El máximo de tokens permitido es {MAX_PROMPT_TOKENS}"
         )
-    return llamar_gemini(prompt, system_prompt, temperature, json_switch)
+    return llamar_gemini(model, prompt, system_prompt, temperature, json_switch)

@@ -25,12 +25,12 @@ def _debe_resumir(state:dict) -> bool:
 
 
 # Función para actualizar el resumen en caso necesario
-def maybe_uptdate_summary(state:dict ) -> bool:
+def maybe_uptdate_summary(model:str, state:dict ) -> bool:
     if not _debe_resumir(state):
         return False
     historial = historial_como_texto(state)
     prompt = build_resumen_prompt(historial, max_puntos=6)
-    summary = llamar_gemini_resumen(prompt)
+    summary = llamar_gemini_resumen(model, prompt)
     set_summary(state, summary)
     return True
     
@@ -50,7 +50,7 @@ def _metricas_a_dict(metricas: MetricasLlamada) -> dict:
 # - Guarda los mensajes con append_X_msg
 # - Solicita el resumen de la conversación
 # - Devuelve una respuesta con estado (ok o error), mensaje y datos.
-def responder_consulta(state: dict, consulta: str) -> dict:
+def responder_consulta(model: str, state: dict, consulta: str) -> dict:
     # 1. Obtener los datos intermedios
     recargar_cache()
     departamento_usuario = state.get("user_profile", {}).get("departamento")   
@@ -72,14 +72,14 @@ def responder_consulta(state: dict, consulta: str) -> dict:
     )
     # 4. Hacer la llamada al LLM
     try:
-        texto, metricas = safe_generate(prompt, system_prompt=SYSTEM_PROMPT_CONSULTA)
+        texto, metricas = safe_generate(model, prompt, system_prompt=SYSTEM_PROMPT_CONSULTA)
     except ValueError as e:
         return respuesta_error("Contexto demasiado grande", [str(e)])
     # 5. Guardar los mensajes y correr turno
     append_user_msg(state, consulta)
     append_model_msg(state, texto)
     # 6. Actualizar el resumen de la conversación si es necesario
-    converascion_resumida = maybe_uptdate_summary(state)
+    converascion_resumida = maybe_uptdate_summary(model, state)
     # 7. Devolver respuesta
     return respuesta_ok(
         "Respuesta generada",
@@ -99,7 +99,7 @@ def responder_consulta(state: dict, consulta: str) -> dict:
 # - Guarda los mensajes con append_X_msg
 # - Solicita el resumen de la conversación
 # - Devuelve una respuesta con estado (ok o error), mensaje y datos.
-def responder_checklist_diario(state: dict, consulta: str) -> dict:
+def responder_checklist_diario(model: str, state: dict, consulta: str) -> dict:
     # 1. Obtener los datos intermedios
     recargar_cache()
     departamento_usuario = state.get("user_profile", {}).get("departamento")
@@ -114,14 +114,14 @@ def responder_checklist_diario(state: dict, consulta: str) -> dict:
     )
     # 3. Hacer la llamada al LLM
     try:
-        texto, metricas = safe_generate(prompt, system_prompt=SYSTEM_PROMPT_CHECKLIST, temperature=TEMPERATURE_JSON, json_switch = True)
+        texto, metricas = safe_generate(model, prompt, system_prompt=SYSTEM_PROMPT_CHECKLIST, temperature=TEMPERATURE_JSON, json_switch = True)
     except ValueError as e:
         return respuesta_error("Contexto demasiado grande", [str(e)])
     # 4. Guardar los mensajes y correr turno
     append_user_msg(state, consulta)
     append_model_msg(state, texto)
     # 5. Actualizar el resumen de la conversación si es necesario
-    converascion_resumida = maybe_uptdate_summary(state)
+    converascion_resumida = maybe_uptdate_summary(model, state)
     # 6. Devolver respuesta
     return respuesta_ok(
         "Respuesta generada",
@@ -136,7 +136,7 @@ def responder_checklist_diario(state: dict, consulta: str) -> dict:
     
 
 # Función para decidir si se devuelve checklist o se responde consulta
-def decidir_checklist_o_consulta(state: dict, consulta: str) -> dict:
+def decidir_checklist_o_consulta(model, state: dict, consulta: str) -> dict:
     # 1. Validación inicial
     validacion_ok, error_en_validacion = validar(consulta)
     if not validacion_ok:
@@ -158,10 +158,10 @@ def decidir_checklist_o_consulta(state: dict, consulta: str) -> dict:
     if check_nombre == True and check_contenido == True:
         return responder_checklist_diario(state, consulta)
     else:
-        return responder_consulta(state, consulta)
+        return responder_consulta(model, state, consulta)
     
 
-def chat_interactivo():
+def chat_interactivo(model):
     print("==================================================")
     print("   Iniciando Chat con Memoria en Bucle Activo")
     print("   Escribe 'salir', 'exit' o 'q' para terminar.")
@@ -183,7 +183,7 @@ def chat_interactivo():
             if not pregunta_usuario.strip():
                 continue # Evita procesar strings vacíos
             # Llamar a Gemini con una de las dos funcionalidades
-            resultado = decidir_checklist_o_consulta(state, pregunta_usuario)
+            resultado = decidir_checklist_o_consulta(model, state, pregunta_usuario)
             
             if resultado.get("status") == "ok":
                 respuesta_llm = resultado["data"]["respuesta"]

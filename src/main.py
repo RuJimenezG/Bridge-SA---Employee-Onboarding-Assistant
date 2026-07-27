@@ -4,6 +4,7 @@ from state import inicializar_estado
 from logic import responder_consulta, decidir_checklist_o_consulta, chat_interactivo
 from context import cargar_empleados_demo, cargar_casos_trampa_demo
 from validators import validar
+from config import MODEL
 
 # Función para imprimir métricas de la llamada
 def imprimir_metricas(respuesta:dict) -> None:
@@ -16,7 +17,7 @@ def imprimir_metricas(respuesta:dict) -> None:
 
 
 # Demo 1: conversación de 1 turno (empleado tipo dev junior)
-def demo_un_turno() -> None:
+def demo_un_turno(model: str) -> None:
     # 1. Cargar empleado tipo dev junior. Inicializar estado.
     empleados = cargar_empleados_demo()
     state = inicializar_estado(empleados[0])
@@ -26,7 +27,7 @@ def demo_un_turno() -> None:
     # 3. Mensaje del usuario
     mensaje = "Hola. Es mi primerito día. ¿Qué hago con el portátil que me han enviado?"
     # 4. Llamada al modelo en función del mensaje
-    respuesta = decidir_checklist_o_consulta(state, mensaje)
+    respuesta = decidir_checklist_o_consulta(model, state, mensaje)
     # 5. Imprimir pregunta, respuesta y métricas
     print(f"Pregunta: \n{mensaje}\n")
     print(f"Respuesta: ")
@@ -43,7 +44,7 @@ def demo_un_turno() -> None:
     print("#" * 50 + "\n\n")
     
 # Demo 2: checklist JSON para día 1
-def demo_checklist_dia1() -> None:
+def demo_checklist_dia1(model) -> None:
     # 1. Cargar empleado. Inicializar estado.
     empleados = cargar_empleados_demo()
     state = inicializar_estado(empleados[3])
@@ -53,7 +54,7 @@ def demo_checklist_dia1() -> None:
     # 3. Mensaje del usuario
     mensaje = "Hola, soy Miguel, el empleado número 4. ¿Qué tengo que hacer en mi día 1?"
     # 4. Llamada al modelo en función del mensaje
-    respuesta = decidir_checklist_o_consulta(state, mensaje)
+    respuesta = decidir_checklist_o_consulta(model, state, mensaje)
     # 5. Imprimir pregunta, respuesta y métricas
     print(f"Pregunta: \n{mensaje}\n")
     print(f"Respuesta: ")
@@ -70,7 +71,7 @@ def demo_checklist_dia1() -> None:
     print("#" * 50 + "\n\n")
 
 # Demo 3: Mismo mensaje con empleado comercial vs remoto UE 
-def demo_comercial_vs_remoto():
+def demo_comercial_vs_remoto(model):
     # 1. Cargar empleados
     empleados = cargar_empleados_demo()
     # 2. Empleado con índice 2 -> remoto_eu, índice 3 -> comercial
@@ -84,7 +85,7 @@ def demo_comercial_vs_remoto():
         # 4. Mensaje del usuario
         mensaje = "¿Dónde tengo que recoger mi equipo de trabajo?"
         # 5. Llamada al modelo en función del mensaje
-        respuesta = decidir_checklist_o_consulta(state, mensaje)
+        respuesta = decidir_checklist_o_consulta(model, state, mensaje)
         # 6. Imprimir pregunta, respuesta y métricas
         print(f"Perfil: {state.get("user_profile").get("perfil")}")
         print(f"Pregunta: \n{mensaje}\n")
@@ -102,7 +103,7 @@ def demo_comercial_vs_remoto():
     print("#" * 50 + "\n\n")
 
 # DEMOSTRACIÓN con varios turnos de pregunta
-def demo_cosultas_asistente() -> None:
+def demo_cosultas_asistente(model) -> None:
     # 1. Mensajes de ejemplo
     mensajes_usuario = [
     {"day": 1, "mensaje": "¿A qué canales de Slack tengo que unirme?"},
@@ -126,7 +127,7 @@ def demo_cosultas_asistente() -> None:
         mensaje = item["mensaje"]
         # 5. Actualizar el día de onboarding. Obtener respuesta
         state["user_profile"]["onboarding_day"] = dia
-        respuesta = responder_consulta(state, mensaje)
+        respuesta = responder_consulta(model, state, mensaje)
         # 6. Imprimir pregunta, respuesta y métricas
         print(f"+++ Dia: {dia} - Pregunta: ")
         print(mensaje)
@@ -151,7 +152,7 @@ def demo_cosultas_asistente() -> None:
     print("Fin de la DEMOSTRACIÓN")
     
 # DEMOSTRACIÓN con casos trampa
-def demo_casos_trampa() -> None:
+def demo_casos_trampa(model) -> None:
     # 1. Inicializar estado
     empleados = cargar_empleados_demo()
     state = inicializar_estado(empleados[1])
@@ -169,7 +170,7 @@ def demo_casos_trampa() -> None:
         print(f"mensaje: {mensaje}")
         print(f"comportamiento_esperado_modo_seguro: {caso.get('comportamiento_esperado_modo_seguro')}") 
         # 6. Generar respuesta
-        respuesta = responder_consulta(state, mensaje)
+        respuesta = responder_consulta(model, state, mensaje)
         # 7. Imprimir pregunta, respuesta y métricas
         print("+++ Pregunta: ")
         print(mensaje)
@@ -194,7 +195,7 @@ def demo_casos_trampa() -> None:
     print("Fin de la DEMOSTRACIÓN")
 
 # DEMOSTRACIÓN checklist
-def demo_checklist() -> None:
+def demo_checklist(model) -> None:
     # 1. Inicializar estado
     empleados = cargar_empleados_demo()
     state = inicializar_estado(empleados[0])
@@ -213,7 +214,7 @@ def demo_checklist() -> None:
     # 4. Iteración sobre los casos
     for mensaje in mensajes_usuario:
         # 6. Generar respuesta
-        respuesta = decidir_checklist_o_consulta(state, mensaje)
+        respuesta = decidir_checklist_o_consulta(model, state, mensaje)
         # 7. Imprimir pregunta, respuesta y métricas
         print("+++ Pregunta: ")
         print(mensaje)
@@ -237,7 +238,7 @@ def demo_checklist() -> None:
     print("=" * 50 + "\n")
     print("Fin de la DEMOSTRACIÓN")
 
-def demo_vulnerable_vs_seguro() -> None:
+def demo_vulnerable_vs_seguro(model) -> None:
     empleados = cargar_empleados_demo()
     state = inicializar_estado(empleados[0])
     
@@ -255,7 +256,7 @@ def demo_vulnerable_vs_seguro() -> None:
         print("-" * 30)
         
         print("MODO VULNERABLE (sin validadores):")
-        r = responder_consulta(state, mensaje)
+        r = responder_consulta(model, state, mensaje)
         print(r.get("data", {}).get("respuesta") or r.get("mensaje"))
         
         state = inicializar_estado(empleados[0])
@@ -265,7 +266,7 @@ def demo_vulnerable_vs_seguro() -> None:
         if not ok:
             print(f"BLOQUEADO: {error}")
         else:
-            r = responder_consulta(state, mensaje)
+            r = responder_consulta(model, state, mensaje)
             print(r.get("data", {}).get("respuesta") or r.get("mensaje"))
         
         print("=" * 30 + "\n")
@@ -274,21 +275,21 @@ def demo_vulnerable_vs_seguro() -> None:
 
 
 # Elegir demo o chat interactivo
-def elegir_demo_chat() -> None:
+def elegir_demo_chat(model: str) -> None:
     eleccion = input("Por favor introduzca un nº para elegir:\n1 -> Demo preconfigurada\n2 -> Chat (con perfil precargado)\n")
     if eleccion == "1":
-        demo_un_turno()
-        demo_checklist_dia1()
-        demo_comercial_vs_remoto()
-        demo_vulnerable_vs_seguro()
-        # demo_casos_trampa()
-        # demo_cosultas_asistente()
-        # demo_checklist()
+        demo_un_turno(model)
+        demo_checklist_dia1(model)
+        demo_comercial_vs_remoto(model)
+        demo_vulnerable_vs_seguro(model)
+        # demo_casos_trampa(model)
+        # demo_cosultas_asistente(model)
+        # demo_checklist(model)
     elif eleccion == "2":
-        chat_interactivo()
+        chat_interactivo(model)
     else: 
         print("No se introdujo ninguna opción correcta.")
 
 
 if __name__ == "__main__":
-    elegir_demo_chat()
+    elegir_demo_chat(MODEL)
